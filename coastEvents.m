@@ -1,5 +1,5 @@
 function [value, isterminal, direction] = coastEvents(~,x)
-    v_atual=x(1);
+    v_atual=x(3);
     h_atual = x(2);
 
     value = [v_atual; h_atual - 5000];
