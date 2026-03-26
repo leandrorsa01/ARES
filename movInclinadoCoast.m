@@ -1,7 +1,8 @@
-function dxdt = movInclinadoCoast(~, x, g0, Re)
+function dxdt = movInclinadoCoast(~, x, Planeta)
     h_atual = x(2);
     v_atual = x(3);
     gg_atual = x(4);
+    g0 = Planeta.g0; Re = Planeta.Re;
 
     dxdt = zeros(5,1);
 

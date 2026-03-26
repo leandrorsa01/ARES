@@ -1,8 +1,15 @@
-function dxdt = movInclinadoPower(~, x, g0, Re, Isp, m_flux)
+function dxdt = movInclinadoPower(~, x, Planeta, Veiculo, estagio)
     h_atual = x(2);
     v_atual = x(3);
     gg_atual = x(4);
     m_atual = x(5);
+    g0 = Planeta.g0; Re = Planeta.Re;
+
+    if estagio == 1
+        Isp = Veiculo.Isp1; m_flux = Veiculo.m_flux1;
+    else
+        Isp = Veiculo.Isp2; m_flux = Veiculo.m_flux2;
+    end
 
     dxdt = zeros(5,1);
 

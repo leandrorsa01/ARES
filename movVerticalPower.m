@@ -1,4 +1,4 @@
-function dxdt = movVerticalPower(~, x, g0, Re, Isp, m_flux) 
+function dxdt = movVerticalPower(~, x, Planeta, Veiculo) 
     h_atual = x(2);
     v_atual = x(3);
     m_atual = x(5);
@@ -7,7 +7,7 @@ function dxdt = movVerticalPower(~, x, g0, Re, Isp, m_flux)
 
     dxdt(1) = 0;
     dxdt(2) = v_atual;
-    dxdt(3) = g0*(m_flux*Isp/m_atual - (Re/(Re+h_atual))^2);
+    dxdt(3) = Planeta.g0*(Veiculo.m_flux1*Veiculo.Isp1/m_atual - (Planeta.Re/(Planeta.Re+h_atual))^2);
     dxdt(4) = 0;
-    dxdt(5) = -m_flux;
+    dxdt(5) = -Veiculo.m_flux1;
 end
