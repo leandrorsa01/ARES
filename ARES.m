@@ -1,7 +1,7 @@
 
 % --------------------------------------------------------------------- %
-%                               Nível 3                                 %
-%                  VOO INCLINADO NO VÁCUO - OPTIMIZAÇÃO                 %
+%                               Nível 4                                 %
+%              VOO INCLINADO NA ATMOSFÉRA - UTOPIA AoA = 0              %
 %                             2 Estágios                                %
 % --------------------------------------------------------------------- %
 
@@ -15,10 +15,15 @@ deg2rad = pi/180;
 % Constantes Planeta
 Planeta.Re = 6371008.8;                                         % Raio médio da Terra
 Planeta.g0 = 9.80665;                                           % Aceleração gravítica (nível no mar)
+Planeta.rho0 = 1.225;                                           % Massa volúmica do ar padrão (nível do mar)
+Planeta.h0 = 0;                                                 % Altitude relativa
+Planeta.H_0 = 7640;                                             % Altura de escala
 
 % Estados Iniciais Veiculo
+Veiculo.d = 1.5;                                                % Diâmetro do Veiculo
+Veiculo.Aref = pi * (Veiculo.d/2)^2;                            % Área de Referência
+Veiculo.CD = 0.2;                                               % Coeficiente de arrasto utopico
 Veiculo.gg0 = 89.5*deg2rad;                                     % Path Angle
-Veiculo.h0 = 0;                                                 % Altitude relativa
 
 % Estágio 1
 Veiculo.m1_0 = 41421.03468;                                     % Massa Húmida - 1º estágio
@@ -74,13 +79,13 @@ options2 = odeset('RelTol', 1e-6, ...
     'MaxStep', 0.1);
 
 [t2, x2] = ode45(@(t, x) ...
-    movInclinadoCoast(t, x, Planeta), tspan2, x2_0, options2);
+    movInclinadoCoast(t, x, Planeta, Veiculo), tspan2, x2_0, options2);
 
 %% Hipotetico ---------------------------------------------------------- %
                                                                          %
 tspan_h = [t_meco(end) t_meco(end)+1000];                                %
 xh_0 = x2(end,:)';                                                       %
-xh_0(5) = Veiculo.m2_0;                                                          %
+xh_0(5) = Veiculo.m2_0;                                                  %
                                                                          %
 optionsh = odeset('Events', @(t, x) coastEvents(t,x), ...                %
     'RelTol', 1e-6, ...                                                  %
@@ -88,7 +93,7 @@ optionsh = odeset('Events', @(t, x) coastEvents(t,x), ...                %
     'MaxStep', 0.1);                                                     %
                                                                          %
 [th, xh, t_coasth, x_coasth, i_coasth] = ode45(@(t, x) ...               %
-    movInclinadoCoast(t, x, Planeta), tspan_h, xh_0, optionsh);           %
+    movInclinadoCoast(t, x, Planeta, Veiculo), tspan_h, xh_0, optionsh);          %
 % ---------------------------------------------------------------------- %
 %% Coast After Separation / phase 3 - Turn
 
@@ -99,7 +104,7 @@ x3_0(5) = Veiculo.m2_0;
 options3 = options2;
 
 [t3, x3] = ode45(@(t,x) ...
-    movInclinadoCoast(t, x, Planeta), tspan3, x3_0, options3);
+    movInclinadoCoast(t, x, Planeta, Veiculo), tspan3, x3_0, options3);
 
 %% Second Burn / phase 4 - Turn
 
@@ -125,7 +130,7 @@ options5 = odeset('Events', @(t, x) coastEvents(t,x), ...
     'MaxStep', 0.1);
 
 [t5, x5, t_coast, x_coast, i_coast] = ode45(@(t, x) ...
-    movInclinadoCoast(t, x, Planeta), tspan5, x5_0, options5);
+    movInclinadoCoast(t, x, Planeta, Veiculo), tspan5, x5_0, options5);
 
 % ---------------------//-------------------- %
 
@@ -147,13 +152,14 @@ imprimeEvento('Separação', t2(end), x2(end,:));
 imprimeEvento('SEI', t3(end), x3(end,:));
 imprimeEvento('SECO', t4(end), x4(end,:));
 
-% Verificação de Apogeu/Impacto
 if ~isempty(t_coast)
     for k = 1:length(i_coast)
         if i_coast(k) == 1
             imprimeEvento('Apogeu', t_coast(k), x_coast(k,:));
         elseif i_coast(k) == 2
-            imprimeEvento('Impacto (Ground)', t_coast(k), x_coast(k,:));
+            imprimeEvento('Perigeu', t_coast(k), x_coast(k,:));
+        elseif i_coast(k) == 3
+            imprimeEvento('Impacto (5km)', t_coast(k), x_coast(k,:));
         end
     end
 end
