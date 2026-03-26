@@ -1,7 +1,7 @@
 
 % --------------------------------------------------------------------- %
-%                               Nível 4                                 %
-%              VOO INCLINADO NA ATMOSFÉRA - UTOPIA AoA = 0              %
+%                               Nível 5                                 %
+%               VOO INCLINADO NA ATMOSFÉRA - Circulização               %
 %                             2 Estágios                                %
 % --------------------------------------------------------------------- %
 
@@ -111,7 +111,7 @@ options3 = options2;
 tspan4 = [t3(end) t3(end)+1000];
 x4_0 = x3(end,:)';
 
-options4 = odeset('Events', @(t, x) sensorCombustivel(t,x,Veiculo.mf2), ...
+options4 = odeset('Events', @(t, x) apogeuProjetado(t,x,Planeta,800), ...
     'RelTol', 1e-6, ...
     'AbsTol', 1e-9, ...
     'MaxStep', 0.1);
@@ -124,20 +124,33 @@ options4 = odeset('Events', @(t, x) sensorCombustivel(t,x,Veiculo.mf2), ...
 tspan5 = [t_seco(end) t_seco(end)+10000];
 x5_0 = x4(end,:)';
 
-options5 = odeset('Events', @(t, x) coastEvents(t,x), ...
+options5 = odeset('Events', @sensorApogeu, ...
     'RelTol', 1e-6, ...
     'AbsTol', 1e-9, ...
     'MaxStep', 0.1);
 
-[t5, x5, t_coast, x_coast, i_coast] = ode45(@(t, x) ...
+[t5, x5, t_apogeu, x_apogeu, i_apogeu] = ode45(@(t, x) ...
     movInclinadoCoast(t, x, Planeta, Veiculo), tspan5, x5_0, options5);
+
+%% Circularization / phase 6 - Turn
+
+tspan6 = [t5(end) t5(end)+500];
+x6_0 = x5(end,:)';
+
+options6 = odeset('Events', @(t, x) perigeuProjetado(t, x, Planeta, 800), ...
+    'RelTol', 1e-6, ...
+    'AbsTol', 1e-9, ...
+    'MaxStep', 0.1);
+
+[t6, x6, t_circ, x_circ, i_circ] = ode45(@(t,x) ...
+    movInclinadoPower(t, x, Planeta, Veiculo, 2), tspan6, x6_0, options6);
 
 % ---------------------//-------------------- %
 
 t = [t0; t1(2:end); t2(2:end); t3(2:end);
-    t4(2:end); t5(2:end)];
+    t4(2:end); t5(2:end); t6(2:end,:)];
 x = [x0; x1(2:end,:); x2(2:end,:); x3(2:end,:);
-    x4(2:end,:); x5(2:end,:)];
+    x4(2:end,:); x5(2:end,:); x6(2:end,:)];
 
 l = x(:,1);
 h = x(:,2);
@@ -151,18 +164,20 @@ imprimeEvento('MECO', t1(end), x1(end,:));
 imprimeEvento('Separação', t2(end), x2(end,:));
 imprimeEvento('SEI', t3(end), x3(end,:));
 imprimeEvento('SECO', t4(end), x4(end,:));
+imprimeEvento('Apogeu', t5(end), x5(end,:));
+imprimeEvento('Fim da Circularização', t6(end), x6(end,:));
 
-if ~isempty(t_coast)
-    for k = 1:length(i_coast)
-        if i_coast(k) == 1
-            imprimeEvento('Apogeu', t_coast(k), x_coast(k,:));
-        elseif i_coast(k) == 2
-            imprimeEvento('Perigeu', t_coast(k), x_coast(k,:));
-        elseif i_coast(k) == 3
-            imprimeEvento('Impacto (5km)', t_coast(k), x_coast(k,:));
-        end
-    end
-end
+% if ~isempty(t_coast)
+%     for k = 1:length(i_coast)
+%         if i_coast(k) == 1
+%             imprimeEvento('Apogeu', t_coast(k), x_coast(k,:));
+%         elseif i_coast(k) == 2
+%             imprimeEvento('Perigeu', t_coast(k), x_coast(k,:));
+%         elseif i_coast(k) == 3
+%             imprimeEvento('Impacto (5km)', t_coast(k), x_coast(k,:));
+%         end
+%     end
+% end
 
 % Gráficos
 figure('Name','Gravity Turn', 'Position', [100, 100, 900, 500]);
