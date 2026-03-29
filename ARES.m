@@ -15,9 +15,7 @@ deg2rad = pi/180;
 % Constantes Planeta
 Planeta.Re = 6371008.8;                                         % Raio médio da Terra
 Planeta.g0 = 9.80665;                                           % Aceleração gravítica (nível no mar)
-Planeta.rho0 = 1.225;                                           % Massa volúmica do ar padrão (nível do mar)
 Planeta.h0 = 0;                                                 % Altitude relativa
-Planeta.H_0 = 7640;                                             % Altura de escala
 
 % Estados Iniciais Veiculo
 Veiculo.d = 1.5;                                                % Diâmetro do Veiculo
@@ -26,16 +24,16 @@ Veiculo.CD = 0.2;                                               % Coeficiente de
 Veiculo.gg0 = 89.5*deg2rad;                                     % Path Angle
 
 % Estágio 1
-Veiculo.m1_0 = 41421.03468;                                     % Massa Húmida - 1º estágio
-Veiculo.mf1 = 7119.462906;                                      % Massa final do primeiro estágio
+Veiculo.m1_0 = 35093.2;                                         % Massa Húmida - 1º estágio
+Veiculo.mf1 = 6031.9;                                           % Massa final do primeiro estágio
 Veiculo.Isp1 = 302.3333;                                        % Impulso específico (motor principal)
 Veiculo.T2W1 = 1.4;                                             % Thrust to Weight ratio nominal
 Veiculo.T1 = Veiculo.m1_0*Planeta.g0*Veiculo.T2W1;              % Thrust (motor principal)
 Veiculo.m_flux1 = Veiculo.T1 / (Veiculo.Isp1 * Planeta.g0);     % Caudal mássico de prop
 
 % Estágio 2
-Veiculo.m2_0 = 3850.857442;                                     % Massa húmida - 2º estágio
-Veiculo.mf2 = 757.1782087;                                      % Massa final do segundo estágio
+Veiculo.m2_0 = 3616.0;                                     % Massa húmida - 2º estágio
+Veiculo.mf2 = 711.0;                                      % Massa final do segundo estágio
 Veiculo.Isp2 = 327.3333;                                        % Impulos específico (motor secundário)
 Veiculo.T2W2 = 0.7;                                             % Thrust to Weight ratio nominal
 Veiculo.T2 = Veiculo.m2_0*Planeta.g0*Veiculo.T2W2;              % Thrust (motor secundário)
