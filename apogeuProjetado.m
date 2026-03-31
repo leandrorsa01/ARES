@@ -2,6 +2,7 @@ function [value, isterminal, direction] = apogeuProjetado(~,x,Planeta, orbita_km
     h_atual = x(2);
     v_atual = x(3);
     gg_atual = x(4);
+    m_atual = x(5);
     mu = Planeta.g0 * Planeta.Re^2;
     r = Planeta.Re + h_atual;
 
@@ -12,7 +13,8 @@ function [value, isterminal, direction] = apogeuProjetado(~,x,Planeta, orbita_km
     e = sqrt(1 + (2 * energia * H^2) / (mu^2));
 
     apogeu = a*(1+e) - Planeta.Re;
-    value = apogeu - (orbita_km*1000);
-    isterminal = 1;
-    direction = 1;
+
+    value = [apogeu - (orbita_km*1000); h_atual; m_atual - 10];
+    isterminal = [1;1;1];
+    direction = [1; -1;-1];
 end

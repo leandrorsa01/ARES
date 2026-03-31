@@ -1,8 +1,6 @@
 function [value, isterminal, direction] = sensorApogeu(~, x)
-    % O Apogeu ocorre quando a velocidade vertical é nula, ou seja, 
-    % quando o Path Angle (gamma) cruza o zero.
-    value = x(4);   
+    value = [x(4); x(2)];   
     
-    isterminal = 1; % 1 = PARAR o ode45 imediatamente!
-    direction = -1; % Só deteta quando o gamma passa de positivo (a subir) para negativo (a descer)
+    isterminal = [1; 1]; 
+    direction = [-1; -1];
 end

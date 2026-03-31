@@ -32,15 +32,15 @@ Veiculo.T1 = Veiculo.m1_0*Planeta.g0*Veiculo.T2W1;              % Thrust (motor 
 Veiculo.m_flux1 = Veiculo.T1 / (Veiculo.Isp1 * Planeta.g0);     % Caudal mássico de prop
 
 % Estágio 2
-Veiculo.m2_0 = 3616.0;                                     % Massa húmida - 2º estágio
-Veiculo.mf2 = 711.0;                                      % Massa final do segundo estágio
+Veiculo.m2_0 = 3616.0;                                          % Massa húmida - 2º estágio
+Veiculo.mf2 = 711.0;                                            % Massa final do segundo estágio
 Veiculo.Isp2 = 327.3333;                                        % Impulos específico (motor secundário)
 Veiculo.T2W2 = 0.7;                                             % Thrust to Weight ratio nominal
 Veiculo.T2 = Veiculo.m2_0*Planeta.g0*Veiculo.T2W2;              % Thrust (motor secundário)
 Veiculo.m_flux2 = Veiculo.T2 / (Veiculo.Isp2 * Planeta.g0);     % Caudal mássico de prop
 
 % Eventos Veiculo
-Veiculo.h_kick = 200;                                           % Altitude do Kick
+Veiculo.h_kick = 199;                                           % Altitude do Kick
 
 %% Power / phase 0 - Vertical
 
