@@ -17,10 +17,7 @@ Planeta.Re = 6371008.8;                                         % Raio médio da
 Planeta.g0 = 9.80665;                                           % Aceleração gravítica (nível no mar)
 Planeta.h0 = 0;                                                 % Altitude relativa
                                    
-Veiculo = loadVeiculo(0);
-% Variáveis dinâmicas ótimas do Veículo
-Veiculo.h_pitchOver = 199;                                      % Altitude do Kick
-Veiculo.gg0 = 89.5*deg2rad;                                     % Path Angle
+Veiculo = loadVeiculo(1);
 
 %% Execução das Fases de Voo
 % Phase 0 - Power Vertical
@@ -52,7 +49,7 @@ xh_0 = x2(end,:)'; xh_0(5) = Veiculo.m2_0;
 
 x3_0 = x2(end,:)'; x3_0(5) = Veiculo.m2_0;
 [t3, x3] = executarFase(@(t,x) movInclinadoCoast(t, x, Planeta, Veiculo), ...
-    t2(end), 100, x3_0, []);
+    t2(end), Veiculo.t_sei, x3_0, []);
 
 % Phase 4 - Second Burn Inclined
 
@@ -79,7 +76,7 @@ x = [x0; x1(2:end,:); x2(2:end,:); x3(2:end,:);
     x4(2:end,:); x5(2:end,:); x6(2:end,:)];
 l = x(:,1); h = x(:,2); v = x(:,3); gg = x(:,4); m = x(:,5);
 
-%% RESULTADOS FINAIS 
+%% RESULTADOS DINÂMICA DE VOO 
 imprimeEvento('Pitch-Over', t0(end), x0(end,:));
 imprimeEvento('MECO', t1(end), x1(end,:));
 imprimeEvento('Separação', t2(end), x2(end,:));
@@ -113,6 +110,90 @@ ylabel('Velocidade Vertical (m/s)'); grid on;
 subplot(4,1,4);
 plot(t, m, 'k', 'LineWidth', 1.5);
 ylabel('Massa (kg)'); xlabel('Tempo (s)'); grid on;
+
+%% 5. Análise Aerodinâmica: O Max Q
+
+rho = zeros(length(h), 1);
+q = zeros(length(h), 1);
+
+for i = 1:length(h) 
+    [rho(i), ~, ~, ~] = atmosfera_100km(h(i)); 
+    
+    % Pressão Dinâmica (q = 1/2 * rho * v^2) em Pascals
+    q(i) = 0.5 * rho(i) * (v(i)^2);
+end
+
+[max_q_val, idx_max_q] = max(q);
+t_max_q = t(idx_max_q);
+h_max_q = h(idx_max_q);
+v_max_q = v(idx_max_q);
+
+fprintf('\n--- ANÁLISE DE MAX Q (PRESSÃO DINÂMICA) ---\n');
+fprintf('Max Q: %.2f Pa (%.3f bar)\n', max_q_val, max_q_val/1e5);
+fprintf('Ocorre aos: %.1f s\n', t_max_q);
+fprintf('Altitude do Max Q: %.1f km\n', h_max_q/1000);
+fprintf('Velocidade no Max Q: Mach %.2f\n', v_max_q/340); % Assumindo vel. som ~340 m/s
+
+figure('Name', 'Perfil de Pressão Dinâmica', 'Color', 'w');
+plot(t, q / 1000, 'r', 'LineWidth', 1.5); hold on;
+plot(t_max_q, max_q_val / 1000, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
+text(t_max_q + 5, max_q_val / 1000, sprintf('Max Q: %.1f kPa\n(%.1f km)', max_q_val/1000, h_max_q/1000), 'FontSize', 11, 'FontWeight', 'bold');
+% Encontrar o tempo em que o foguetão cruza a linha de Karman
+idx_karman = find(h >= 100000, 1);
+if ~isempty(idx_karman)
+    xlim([0, t(idx_karman)]); 
+else
+    xlim([0, t_max_q * 3]);
+end
+xlabel('Tempo de Voo (s)');
+ylabel('Pressão Dinâmica - q (kPa)');
+title('Perfil de Pressão Dinâmica (Fase Atmosférica)');
+grid on;
+
+%% 6. Análise de Perdas de Velocidade
+
+% 1. PERDAS POR ARRASTO (Drag Losses)
+Drag = q * Veiculo.Aref * Veiculo.CD;
+a_drag = Drag ./ m;
+
+dV_drag = trapz(t, a_drag);
+
+% 2. PERDAS POR GRAVIDADE (Gravity Losses)
+g_local = Planeta.g0 * (Planeta.Re ./ (Planeta.Re + h)).^2;
+a_grav = g_local .* sin(gg);
+
+dV_grav = trapz(t, a_grav);
+
+fprintf('\n--- ANÁLISE DE PERDAS DE DELTA-V ---\n');
+fprintf('Perdas por Arrasto:    %4.1f m/s\n', dV_drag);
+fprintf('Perdas por Gravidade:  %4.1f m/s\n', dV_grav);
+fprintf('------------------------------------\n');
+fprintf('PERDAS TOTAIS: %4.1f m/s\n', dV_drag + dV_grav);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
