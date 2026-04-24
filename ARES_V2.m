@@ -30,3 +30,5 @@ Rot0 = [0; 0; 0];
 Mflux0 = [Veiculo.m_RP1_S1; Veiculo.m_LOX_S1];
 
 x0_0 = [Pos0; Quat0; Vel0; Rot0; Mflux0];
+ev0 = @(t,x) gestorEventos(t,x,Planeta,'pitchOver',Veiculo.h_pitchOver);
+[t0, x0, t_pitchOver, x_pitchOver] = 
