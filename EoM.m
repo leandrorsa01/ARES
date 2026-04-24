@@ -5,19 +5,14 @@ function dx = EoM(~,x,Planeta,Veiculo,estagio)
     dy = 0 * (pi/180); dz = 0 * (pi/180);
     g = Planeta.g0*(Planeta.Re/(Planeta.Re+h))^2;
     R = Veiculo.d / 2; CP = Veiculo.CP;
-
-    if norm([u,v,w]) > 0
-        aoa = atan2(v, u); bb = asin(w / norm([u,v,w]));
-    else
-        aoa = 0; bb = 0;
-    end
+    v_total = norm([u,v,w]);
 
     if estagio == 1
         Isp = Veiculo.Isp1; m_flux = Veiculo.m_flux1;
         m_RP1_S1 = m_RP1-Veiculo.m_RP1_S2;
         m_LOX_S1 = m_LOX-Veiculo.m_LOX_S2;
 
-        % CG1
+        % CG2
         x_RP1_S2 = Veiculo.base_RP1_S2 +(Veiculo.h_RP1_S2/2);
         x_LOX_S2 = Veiculo.base_LOX_S2 +(Veiculo.h_LOX_S2/2);
         m_S2     = Veiculo.m_RP1_S2 + Veiculo.m_LOX_S2 + Veiculo.ms2 + Veiculo.mPL;
@@ -26,7 +21,7 @@ function dx = EoM(~,x,Planeta,Veiculo,estagio)
                     Veiculo.ms2*Veiculo.Xs_S2+ ...
                     Veiculo.mPL*Veiculo.X_PL)/m_S2;
 
-        % CG2
+        % CG1
         h_RP1_S1 = Veiculo.h_RP1_S1 * (m_RP1_S1 / Veiculo.m_RP1_S1);
         h_LOX_S1 = Veiculo.h_LOX_S1 * (m_LOX_S1 / Veiculo.m_LOX_S1);
         x_RP1_S1 = Veiculo.base_RP1_S1 + (h_RP1_S1 / 2);
@@ -80,7 +75,7 @@ function dx = EoM(~,x,Planeta,Veiculo,estagio)
 
         % CG
         h_RP1_S2 = Veiculo.h_RP1_S2 * (m_RP1_S2 / Veiculo.m_RP1_S2);
-        h_LOX_S2 = Veiculo.h_LOX_S1 * (m_LOX_S2 / Veiculo.m_LOX_S2);
+        h_LOX_S2 = Veiculo.h_LOX_S2 * (m_LOX_S2 / Veiculo.m_LOX_S2);
         x_RP1_S2 = Veiculo.base_RP1_S2 + (h_RP1_S2 / 2);
         x_LOX_S2 = Veiculo.base_LOX_S2 + (h_LOX_S2 / 2);
         m     = m_RP1_S2 + m_LOX_S2 + Veiculo.ms2 + Veiculo.mPL;
@@ -111,10 +106,25 @@ function dx = EoM(~,x,Planeta,Veiculo,estagio)
         error('ARES:noStage', 'Nenhum estágio identificado');
     end
 
-    D = 0; L = 0;
-    Ax = -D*cos(aoa)+L*sin(aoa);
-    Ay = D*sin(aoa)+L*cos(aoa);
-    Az = -D*sin(bb)-L*cos(bb);
+    % Aerodinámica
+    if v_total > 0.01
+        aoa = atan2(-v, u);
+        bb  = asin(w / v_total);
+
+        [rho, ~, ~, ~] = atmosfera_100km(h);
+        q_dyn = 0.5 * rho * v_total^2;
+        
+        D = q_dyn * Veiculo.Aref * Veiculo.CD;
+        
+        Ly = q_dyn * Veiculo.Aref * Veiculo.C_Na * aoa;
+        Lz = q_dyn * Veiculo.Aref * Veiculo.C_Na * bb;
+        
+        Ax = -D*cos(aoa) + Ly*sin(aoa);
+        Ay =  D*sin(aoa) + Ly*cos(aoa);
+        Az = -D*sin(bb)  - Lz*cos(bb);
+    else
+        Ax = 0; Ay = 0; Az = 0;
+    end
 
     Tx = Planeta.g0*Isp*m_flux*cos(dy)*cos(dz);
     Ty = Planeta.g0*Isp*m_flux*cos(dy)*sin(dz);
