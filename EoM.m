@@ -1,10 +1,10 @@
-function dx = EoM(~,x,Planeta,Veiculo,dy,dz,estagio,ignicao)
+function dx = EoM(~,x,Planeta,Veiculo,in,estagio)
     h = x(3); q0 = x(4); q1 = x(5); q2 = x(6); q3 = x(7); u = x(8);
     v = x(9); w = x(10); p = x(11); q = x(12); r = x(13); m_RP1 = x(14);
     m_LOX = x(15);
     g = Planeta.g0*(Planeta.Re/(Planeta.Re+h))^2;
     CP = Veiculo.CP; v_total = norm([u,v,w]);
-    dy = dy*(pi/180); dz = dz*(pi/180);
+    dy = in(1)*(pi/180); dz = in(2)*(pi/180);
 
     if estagio == 1
         Isp = Veiculo.Isp1; m_flux = Veiculo.m_flux1;
@@ -36,9 +36,9 @@ function dx = EoM(~,x,Planeta,Veiculo,dy,dz,estagio,ignicao)
     end
 
     
-    Tx = Planeta.g0*Isp*m_flux*ignicao*cos(dy)*cos(dz);
-    Ty = Planeta.g0*Isp*m_flux*ignicao*cos(dy)*sin(dz);
-    Tz = Planeta.g0*Isp*m_flux*ignicao*sin(dy);
+    Tx = Planeta.g0*Isp*m_flux*in(3)*cos(dy)*cos(dz);
+    Ty = Planeta.g0*Isp*m_flux*in(3)*cos(dy)*sin(dz);
+    Tz = Planeta.g0*Isp*m_flux*in(3)*sin(dy);
 
     dx = zeros(15,1);
 
@@ -60,6 +60,6 @@ function dx = EoM(~,x,Planeta,Veiculo,dy,dz,estagio,ignicao)
     dx(12) = (-(Ix-Iy)*p*r+(CG-pos_motor)*Tz-(CP-CG)*Az)/Iy;
     dx(13) = (-(Iy-Ix)*p*q-(CG-pos_motor)*Ty+(CP-CG)*Ay)/Iy;
     % Termodinâmica
-    dx(14) = -m_flux*ignicao/3.5;
-    dx(15) = -(m_flux - m_flux/3.5)*ignicao;
+    dx(14) = -m_flux*in(3)/3.5;
+    dx(15) = -(m_flux - m_flux/3.5)*in(3);
 end
