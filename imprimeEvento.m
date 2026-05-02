@@ -1,8 +1,10 @@
-function imprimeEvento(nome, t_val, x_val)
-    deg2rad = pi/180;
-    fprintf('\n--- EVENTO %s ---\n', upper(nome));
-    fprintf(['Tempo: %7.4f s | Longitude: %8.4f km |' ...
-        ' Altitude: %8.4f km | Velocidade: %7.4f m/s |' ...
-        ' Path: %6.4f deg\n'], ...
-        t_val, x_val(1)/1000, x_val(2)/1000, x_val(3), x_val(4)/deg2rad);
+function imprimeEvento(nome, t_val, x_val, mach_val, q_val)
+    alt_km = x_val(2) / 1000;
+    vel_ms = x_val(3);
+    path_deg = x_val(4) * (180/pi);
+    massa = x_val(5);
+    q_kpa = q_val / 1000;
+
+    fprintf('%-20s | %8.2f | %10.3f | %10.2f | %6.2f | %8.2f | %12.2f | %10.1f\n', ...
+        nome, t_val, alt_km, vel_ms, mach_val, q_kpa, path_deg, massa);
 end

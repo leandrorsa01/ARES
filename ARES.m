@@ -17,7 +17,7 @@ Planeta.Re = 6371008.8;                                         % Raio médio da
 Planeta.g0 = 9.80665;                                           % Aceleração gravítica (nível no mar)
 Planeta.h0 = 0;                                                 % Altitude relativa
                                    
-Veiculo = loadVeiculo(1);
+Veiculo = loadVeiculo(2);
 
 %% Execução das Fases de Voo
 % Phase 0 - Power Vertical
@@ -68,29 +68,71 @@ ev5 = @(t, x) superEvento(t,x,Planeta,'sensorApogeu',0);
 ev6 = @(t, x) superEvento(t, x, Planeta, 'perigeuProjetado', 800);
 [t6, x6, t_circ, x_circ] = executarFase(@(t,x) movInclinadoPower(t, x, Planeta, Veiculo, 2), t5(end), 500, x5(end,:)', ev6);
 
-%% Concatenação de Dados
+%% Processamento e Concatenação de Dados
 
 t = [t0; t1(2:end); t2(2:end); t3(2:end);
     t4(2:end); t5(2:end); t6(2:end,:)];
 x = [x0; x1(2:end,:); x2(2:end,:); x3(2:end,:);
     x4(2:end,:); x5(2:end,:); x6(2:end,:)];
-l = x(:,1); h = x(:,2); v = x(:,3); gg = x(:,4); m = x(:,5);
+d = x(:,1); h = x(:,2); v = x(:,3); gg = x(:,4); m = x(:,5);
 
-%% RESULTADOS DINÂMICA DE VOO 
-imprimeEvento('Pitch-Over', t0(end), x0(end,:));
-imprimeEvento('MECO', t1(end), x1(end,:));
-imprimeEvento('Separação', t2(end), x2(end,:));
-imprimeEvento('SEI', t3(end), x3(end,:));
-imprimeEvento('SECO', t4(end), x4(end,:));
-imprimeEvento('Apogeu', t5(end), x5(end,:));
-imprimeEvento('Fim da Circularização', t6(end), x6(end,:));
+rho = zeros(length(h),1);
+a = zeros(length(h), 1);
+q = zeros(length(h), 1);
+Mach = zeros(length(h), 1);
 
-% Gráficos
+for i = 1:length(h)
+    [rho(i), ~, ~, a(i)] = atmosfera_100km(h(i));
+    
+    q(i) = 0.5*rho(i)*(v(i)^2);
+    Mach(i) = v(i)/a(i);
+end
+
+idx_liftoff = 1;
+idx_M08 = find(Mach >= 0.8, 1);
+idx_M12 = find(Mach >= 1.2, 1);
+[max_q_val, idx_max_q] = max(q);
+idx_pitchOver = find(t >= t0(end), 1);
+idx_mid1 = find(t >= (t(idx_max_q)+34.93), 1);
+idx_mid2 = find(t >= (t(idx_max_q)+69.86), 1);
+idx_meco = find(t >= t1(end), 1);
+idx_sep = find(t >= t2(end), 1);
+idx_sei = find(t >= t3(end), 1);
+idx_seco = find(t >= t4(end), 1);
+idx_apogeu = find(t >= t5(end), 1);
+idx_circ = find(t >= t6(end), 1);
+
+indices = [idx_liftoff, idx_M08, idx_M12, idx_max_q, idx_pitchOver, ...
+           idx_mid1, idx_mid2, idx_meco, idx_sep, idx_sei, idx_seco, ...
+           idx_apogeu, idx_circ];
+nomes = {'Liftoff', 'Mach 0.8', 'Mach 1.2', 'Max-Q', 'Pitch-Over', ...
+         'Mid-Burn 1', 'Mid-Burn 2', 'MECO', 'Separação', 'SEI', 'SECO', ...
+         'Apogeu', 'Circ. Over'};
+
+[indices_ord, sort_idx] = sort(indices);
+nomes_ord = nomes(sort_idx);
+
+%% Resultados
+
+fprintf('\n=======================================================================================================\n');
+fprintf('%-20s | %-8s | %-10s | %-10s | %-6s | %-8s | %-12s | %-10s\n', ...
+        'EVENTO', 'TEMPO(s)', 'ALT(km)', 'VEL(m/s)', 'MACH', 'Q(kPa)', 'PATH(deg)', 'MASSA(kg)');
+fprintf('-------------------------------------------------------------------------------------------------------\n');
+
+for i = 1:length(indices_ord)
+    idx = indices_ord(i);
+    if ~isempty(idx) && idx > 0
+        imprimeEvento(nomes_ord{i}, t(idx), x(idx,:), Mach(idx), q(idx));
+    end
+end
+
+
+%% Gráficos
 figure('Name','Gravity Turn', 'Position', [100, 100, 900, 500]);
-plot(l/1000, h/1000, 'b', 'LineWidth', 1.3);
+plot(d/1000, h/1000, 'b', 'LineWidth', 1.3);
 hold on;
 plot(xh(:,1)/1000, xh(:,2)/1000, 'g--', 'LineWidth', 1);
-plot(l(end)/1000,h(end)/1000, 'rx', 'MarkerSize', 8, 'LineWidth', 2);
+plot(d(end)/1000,h(end)/1000, 'rx', 'MarkerSize', 8, 'LineWidth', 2);
 plot(x3(end,1)/1000, x3(end,2)/1000, 'go', 'MarkerSize', 10, 'LineWidth', 1);
 xlabel('Downrange - Distância Horizontal (km)');
 ylabel('Altitude (km)');
@@ -111,40 +153,19 @@ subplot(4,1,4);
 plot(t, m, 'k', 'LineWidth', 1.5);
 ylabel('Massa (kg)'); xlabel('Tempo (s)'); grid on;
 
-%% 5. Análise Aerodinâmica: O Max Q
-
-rho = zeros(length(h), 1);
-q = zeros(length(h), 1);
-
-for i = 1:length(h) 
-    [rho(i), ~, ~, ~] = atmosfera_100km(h(i)); 
-    
-    % Pressão Dinâmica (q = 1/2 * rho * v^2) em Pascals
-    q(i) = 0.5 * rho(i) * (v(i)^2);
-end
-
-[max_q_val, idx_max_q] = max(q);
-t_max_q = t(idx_max_q);
-h_max_q = h(idx_max_q);
-v_max_q = v(idx_max_q);
-
-fprintf('\n--- ANÁLISE DE MAX Q (PRESSÃO DINÂMICA) ---\n');
-fprintf('Max Q: %.2f Pa (%.3f bar)\n', max_q_val, max_q_val/1e5);
-fprintf('Ocorre aos: %.1f s\n', t_max_q);
-fprintf('Altitude do Max Q: %.1f km\n', h_max_q/1000);
-fprintf('Velocidade no Max Q: Mach %.2f\n', v_max_q/340); % Assumindo vel. som ~340 m/s
-
 figure('Name', 'Perfil de Pressão Dinâmica', 'Color', 'w');
 plot(t, q / 1000, 'r', 'LineWidth', 1.5); hold on;
+t_max_q = t(idx_max_q);
+h_max_q = h(idx_max_q);
 plot(t_max_q, max_q_val / 1000, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
 text(t_max_q + 5, max_q_val / 1000, sprintf('Max Q: %.1f kPa\n(%.1f km)', max_q_val/1000, h_max_q/1000), 'FontSize', 11, 'FontWeight', 'bold');
-% Encontrar o tempo em que o foguetão cruza a linha de Karman
 idx_karman = find(h >= 100000, 1);
 if ~isempty(idx_karman)
     xlim([0, t(idx_karman)]); 
 else
     xlim([0, t_max_q * 3]);
 end
+
 xlabel('Tempo de Voo (s)');
 ylabel('Pressão Dinâmica - q (kPa)');
 title('Perfil de Pressão Dinâmica (Fase Atmosférica)');
@@ -164,35 +185,12 @@ a_grav = g_local .* sin(gg);
 
 dV_grav = trapz(t, a_grav);
 
-fprintf('\n--- ANÁLISE DE PERDAS DE DELTA-V ---\n');
+fprintf('\n=======================================================================================================\n');
+fprintf('--- ANÁLISE DE PERDAS DE DELTA-V ---\n');
 fprintf('Perdas por Arrasto:    %4.1f m/s\n', dV_drag);
 fprintf('Perdas por Gravidade:  %4.1f m/s\n', dV_grav);
 fprintf('------------------------------------\n');
 fprintf('PERDAS TOTAIS: %4.1f m/s\n', dV_drag + dV_grav);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
