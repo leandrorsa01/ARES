@@ -37,8 +37,8 @@ function dx = EoM(~,x,Planeta,Veiculo,in,estagio)
 
     
     Tx = Planeta.g0*Isp*m_flux*in(3)*cos(dy)*cos(dz);
-    Ty = -Planeta.g0*Isp*m_flux*in(3)*cos(dy)*sin(dz);
-    Tz = -Planeta.g0*Isp*m_flux*in(3)*sin(dy);
+    Ty = Planeta.g0*Isp*m_flux*in(3)*cos(dy)*sin(dz);
+    Tz = Planeta.g0*Isp*m_flux*in(3)*sin(dy);
 
     dx = zeros(15,1);
 
