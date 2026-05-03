@@ -25,7 +25,7 @@ u = [0;0;1];
 %% Execução das Fases de Voo
 % Phase 0 - Power Vertical
 Pos0   = [0; 0; Planeta.h0];
-Quat0  = [cos(pi/4); 0; -sin(pi/4); 0];
+Quat0  = [0; cos(pi/4); 0; sin(pi/4)];
 Vel0   = [0; 0; 0];
 Rot0   = [0; 0; 0];
 Mflux0 = [Veiculo.m_RP1_S1 + Veiculo.m_RP1_S2;
@@ -229,39 +229,3 @@ for k = 1:passo:length(t)
 end
 
 disp('Animação concluída!');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
