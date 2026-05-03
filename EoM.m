@@ -17,28 +17,28 @@ function dx = EoM(~,x,Planeta,Veiculo,in,estagio)
 
     % Aerodinámica
     if v_total > 0.01
-        aoa = atan2(-v, u);
-        bb  = asin(w / v_total);
+        aoa = atan2(w, u);
+        bb  = asin(v / v_total);
 
         [rho, ~, ~, ~] = atmosfera_100km(h);
         q_dyn = 0.5 * rho * v_total^2;
         
         D = q_dyn * Veiculo.Aref * Veiculo.CD;
         
-        Ly = q_dyn * Veiculo.Aref * Veiculo.C_Na * aoa;
-        Lz = q_dyn * Veiculo.Aref * Veiculo.C_Na * bb;
+        Ly = q_dyn * Veiculo.Aref * Veiculo.C_Na * bb;
+        Lz = q_dyn * Veiculo.Aref * Veiculo.C_Na * aoa;
         
-        Ax = -D*cos(aoa) + Ly*sin(aoa);
-        Ay =  D*sin(aoa) + Ly*cos(aoa);
-        Az = -D*sin(bb)  - Lz*cos(bb);
+        Ax = -D * cos(aoa) * cos(bb) + Lz * sin(aoa) + Ly * sin(bb);
+        Ay = -D * sin(bb) - Ly * cos(bb);
+        Az = -D * sin(aoa) - Lz * cos(aoa);
     else
         Ax = 0; Ay = 0; Az = 0;
     end
 
     
     Tx = Planeta.g0*Isp*m_flux*in(3)*cos(dy)*cos(dz);
-    Ty = Planeta.g0*Isp*m_flux*in(3)*cos(dy)*sin(dz);
-    Tz = Planeta.g0*Isp*m_flux*in(3)*sin(dy);
+    Ty = -Planeta.g0*Isp*m_flux*in(3)*cos(dy)*sin(dz);
+    Tz = -Planeta.g0*Isp*m_flux*in(3)*sin(dy);
 
     dx = zeros(15,1);
 
@@ -57,8 +57,8 @@ function dx = EoM(~,x,Planeta,Veiculo,in,estagio)
     dx(10) = -p*v+q*u-g*(q0^2-q1^2-q2^2+q3^2)+(Tz/m)+(Az/m);
     % Dinâmica de Rotação
     dx(11) = 0;
-    dx(12) = (-(Ix-Iy)*p*r+(CG-pos_motor)*Tz-(CP-CG)*Az)/Iy;
-    dx(13) = (-(Iy-Ix)*p*q-(CG-pos_motor)*Ty+(CP-CG)*Ay)/Iy;
+    dx(12) = (-(Ix-Iy)*p*r - (pos_motor-CG)*Tz - (CP-CG)*Az) / Iy;
+    dx(13) = (-(Iy-Ix)*p*q + (pos_motor-CG)*Ty + (CP-CG)*Ay) / Iy;
     % Termodinâmica
     dx(14) = -m_flux*in(3)/3.5;
     dx(15) = -(m_flux - m_flux/3.5)*in(3);

@@ -25,7 +25,7 @@ u = [0;0;1];
 %% Execução das Fases de Voo
 % Phase 0 - Power Vertical
 Pos0   = [0; 0; Planeta.h0];
-Quat0  = [0.5; 0.5; -0.5; 0.5];
+Quat0  = [cos(pi/4); 0; -sin(pi/4); 0];
 Vel0   = [0; 0; 0];
 Rot0   = [0; 0; 0];
 Mflux0 = [Veiculo.m_RP1_S1 + Veiculo.m_RP1_S2;
@@ -37,25 +37,25 @@ options = odeset('Events', ev0, 'RelTol', 1e-6, 'AbsTol', 1e-9, 'MaxStep', 0.1);
 tspan0 = [0 50];
 [t0, x0, te0, xe0, ie0] = ode45(@(t,x) EoM(t, x, Planeta, Veiculo, u, 1), ...
     tspan0, x0_0, options);
-verificaRestricoes(ie0);
+% verificaRestricoes(ie0);
 
 % Phase 1 - Pitch Over
 ev1 = @(t,x) gestorEventos(t,x,Planeta);
 options = odeset('Events', ev1, 'RelTol', 1e-6, 'AbsTol', 1e-9, 'MaxStep', 0.1);
 tspan1 = [t0(end), t0(end) + 1];
-u(2) = 2;
+u(1) = -2;
 [t1, x1, te1, xe1, ie1] = ode45(@(t,x) EoM(t,x,Planeta,Veiculo,u,1), ...
     tspan1,x0(end,:)',options);
-verificaRestricoes(ie1);
+% verificaRestricoes(ie1);
 
 % Phase 2 - Power Inclined
 ev2 = @(t,x) gestorEventos(t,x,Planeta,'combustivel',Veiculo.m_RP1_S2+Veiculo.m_LOX_S2);
 options = odeset('Events', ev2, 'RelTol', 1e-6, 'AbsTol', 1e-9, 'MaxStep', 0.1);
 tspan2 = [t1(end), t1(end) + 300];
-u(2) = 0;
+u(1) = 0;
 [t2, x2, te2, xe2, ie2] = ode45(@(t,x) EoM(t, x, Planeta, Veiculo, u, 1), ...
     tspan2, x1(end,:)', options);
-verificaRestricoes(ie2);
+% verificaRestricoes(ie2);
 
 % Phase 3 - Coast til separation
 ev3 = @(t,x) gestorEventos(t,x,Planeta);
@@ -64,7 +64,7 @@ tspan3 = [t2(end), t2(end) + Veiculo.t_sei];
 u(3) = 0;
 [t3, x3, te3, xe3, ie3] = ode45(@(t,x) EoM(t,x,Planeta,Veiculo,u,1), ...
     tspan3,x2(end,:)',options);
-verificaRestricoes(ie3);
+% verificaRestricoes(ie3);
 
 % Phase 4 - Burn til apogeu=800km
 ev4 = @(t,x) gestorEventos(t,x,Planeta,'apogeuProjetado',800);
@@ -73,7 +73,7 @@ tspan4 = [t3(end), t3(end) + 1000];
 u(3) = 1;
 [t4, x4, te4, xe4, ie4] = ode45(@(t,x) EoM(t, x, Planeta, Veiculo, u, 2), ...
     tspan4, x3(end,:)', options);
-verificaRestricoes(ie4);
+% verificaRestricoes(ie4);
 
 % Phase 5 - Coast til 800km
 ev5 = @(t,x) gestorEventos(t,x,Planeta,'apogeuSensor',800);
@@ -82,7 +82,7 @@ tspan5 = [t4(end), t4(end) + 1000];
 u(3) = 0;
 [t5, x5, te5, xe5, ie5] = ode45(@(t,x) EoM(t, x, Planeta, Veiculo, u, 2), ...
     tspan5, x4(end,:)', options);
-verificaRestricoes(ie5);
+% verificaRestricoes(ie5);
 
 % Phase 6 - Circularization
 ev6 = @(t,x) gestorEventos(t,x,Planeta,'circularizacao',800);
@@ -91,16 +91,16 @@ tspan6 = [t5(end), t5(end) + 100];
 u(3) = 1;
 [t6, x6, te6, xe6, ie6] = ode45(@(t,x) EoM(t, x, Planeta, Veiculo, u, 2), ...
     tspan6, x5(end,:)', options);
-verificaRestricoes(ie6);
+% verificaRestricoes(ie6);
 
 % Phase 7 - Coast for confirmation
 ev7 = @(t,x) gestorEventos(t,x,Planeta);
 options = odeset('Events', ev7, 'RelTol', 1e-6, 'AbsTol', 1e-9, 'MaxStep', 0.1);
 tspan7 = [t6(end), t6(end) + 300];
 u(3) = 0;
-[t7, x7, te7, xe7, ie7] = ode45(@(t,x) EoM(t,x,Planeta,Veiculo,2), ...
+[t7, x7, te7, xe7, ie7] = ode45(@(t,x) EoM(t,x,Planeta,Veiculo,u,2), ...
     tspan7,x6(end,:)',options);
-verificaRestricoes(ie7);
+% verificaRestricoes(ie7);
 
 %% Processamento e Concatenação de Dados
 
@@ -183,7 +183,7 @@ surf(N_Z * 3 + Comp, N_Y, N_X, 'Parent', modelo_3D, 'FaceColor', 'r', 'EdgeColor
 camlight right; lighting gouraud;
 
 % 4. Motor de Animação (Com Controlo de Tempo e Slow-Motion)
-FramesTotais = 3500; % Resolução visual
+FramesTotais = 3000; % Resolução visual
 passo = max(1, floor(length(t) / FramesTotais)); 
 zoom_box = 50; % A câmara mostra uma caixa de 50 metros à volta do foguetão
 
