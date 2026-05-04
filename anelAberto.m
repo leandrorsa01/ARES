@@ -2,7 +2,6 @@ linearizacao
 
 polos_instaveis = zeros(1, length(pontos_nominais));
 mach_voo = zeros(1, length(pontos_nominais));
-nomes = {'Liftoff', 'Pitch', 'M0.8', 'M1.2', 'MaxQ', 'Mid1', 'Mid2', 'MECO'};
 
 fprintf('\n--- Análise Modal ---\n');
 

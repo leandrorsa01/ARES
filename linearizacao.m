@@ -6,6 +6,8 @@ Planeta.h0 = 0;                                  % Altitude relativa
 
 Veiculo = loadVeiculo_V2(3);
 
+nomes = {'Liftoff', 'Pitch', 'M0.8', 'M1.2', 'MaxQ', 'Mid1', 'Mid2', 'MECO'};
+
 Liftoff.t = 0; Liftoff.h = 0; Liftoff.vel = 0; Liftoff.mach = 0; Liftoff.Q = 0;
 Liftoff.gg = deg2rad(90); Liftoff.mass = 28820.9;
 
