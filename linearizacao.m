@@ -1,3 +1,5 @@
+clear; close all; clc;
+
 Planeta.Re = 6371008.8;                          % Raio médio da Terra
 Planeta.g0 = 9.80665;                            % Aceleração gravítica (nível no mar)
 Planeta.h0 = 0;                                  % Altitude relativa
@@ -43,7 +45,7 @@ for i = 1:length(pontos_nominais)
     x0_geral(2,i) = 0;
     x0_geral(3,i) = ponto.h;
 
-    q = eul2quat(0,-ponto.gg,pi);
+    q = eul2quat(0,ponto.gg-pi,pi);
     x0_geral(4,i) = q(1);
     x0_geral(5,i) = q(2);
     x0_geral(6,i) = q(3);
@@ -71,9 +73,11 @@ for i = 1:length(pontos_nominais)
 
     [A_local, B_local] = jacobianos(x0_geral(:,i), u0_geral(:,i), Planeta, Veiculo, 1);
     
-    % Guardar dentro do cell array
     A_matrizes{i} = A_local;
     B_matrizes{i} = B_local;
 end
+
+clear i;
+
 
 
