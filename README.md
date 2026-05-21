@@ -14,6 +14,15 @@ ARES was designed to model the equations of motion of a launch vehicle, allowing
 ## 🧮 Mathematical Foundations
 The simulator relies on the numerical integration of the vehicle's state. The dynamic state vector is propagated over time based on the classical equations of motion.
 
+### Attitude Representation: Quaternions vs. Euler Angles
+To represent the vehicle's attitude, ARES employs **quaternions** rather than traditional Euler angles. While Euler angles provide an intuitive understanding of roll, pitch, and yaw, they suffer from a critical mathematical singularity known as **gimbal lock** (which occurs when the pitch angle approaches $\pm 90^\circ$). Given that launch vehicles operate extensively at near-vertical orientations, avoiding this singularity is paramount.
+
+Quaternions ($q_0, q_1, q_2, q_3$) eliminate gimbal lock entirely, ensuring a robust and continuous attitude calculation across all flight phases. Furthermore, quaternion kinematics rely on linear differential equations, which significantly reduces the computational overhead during numerical integration by avoiding expensive trigonometric functions.
+
+The quaternion derivative is computed using the body angular rates ($p, q, r$) as follows:
+
+$$\begin{bmatrix}\dot{q_0}\\\dot{q_1}\\\dot{q_2}\\\dot{q_3}\end{bmatrix}=\frac{1}{2}\begin{bmatrix}0&-p&-q&-r\\p&0&r&-q\\q&-r&0&p\\r&q&-p&0\end{bmatrix}\begin{bmatrix}q_0\\q_1\\q_2\\q_3\end{bmatrix}$$
+
 ## 🚀 How to Run Locally
 To run the full simulation on your machine, follow these steps:
 
