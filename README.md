@@ -19,10 +19,6 @@ To represent the vehicle's attitude, ARES employs **quaternions** rather than tr
 
 Quaternions ($q_0, q_1, q_2, q_3$) eliminate gimbal lock entirely, ensuring a robust and continuous attitude calculation across all flight phases. Furthermore, quaternion kinematics rely on linear differential equations, which significantly reduces the computational overhead during numerical integration by avoiding expensive trigonometric functions.
 
-The quaternion derivative is computed using the body angular rates ($p, q, r$) as follows:
-
-$$\begin{bmatrix}\dot{q_0}\\\dot{q_1}\\\dot{q_2}\\\dot{q_3}\end{bmatrix}=\frac{1}{2}\begin{bmatrix}0&-p&-q&-r\\p&0&r&-q\\q&-r&0&p\\r&q&-p&0\end{bmatrix}\begin{bmatrix}q_0\\q_1\\q_2\\q_3\end{bmatrix}$$
-
 ## 🚀 How to Run Locally
 To run the full simulation on your machine, follow these steps:
 
